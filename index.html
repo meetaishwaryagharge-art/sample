@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inquiries & Operations Dashboard | SMX India</title>
+
+<!-- External Core Libraries -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --smx-blue: #006699;
+    --smx-cyan: #00a0e9;
+    --smx-green: #28a745;
+    --smx-red: #e35353;
+    --smx-amber: #f5a623;
+    --smx-dark: #0b1d2e;
+    --smx-dark-2: #122b44;
+    --line: rgba(11,29,46,0.08);
+    --line-dark: rgba(255,255,255,0.08);
+    --paper: #f4f7f9;
+    --sidebar-w: 260px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Montserrat', sans-serif; color: #444; background: var(--paper); margin: 0;
+  }
+  h1, h2, h3, h4, h5 { font-family: 'Montserrat', sans-serif; color: #1a2b3a; }
+  a { text-decoration: none; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--smx-cyan); border-radius: 10px; }
+
+  /* SIDEBAR PANELS */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
+    background: var(--smx-dark); color: #fff; z-index: 1100;
+    display: flex; flex-direction: column; padding: 24px 16px; transition: transform .25s ease;
+  }
+  .sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 26px; }
+  .sidebar-brand .mark {
+    width: 38px; height: 38px; border-radius: 9px; background: linear-gradient(135deg, var(--smx-cyan), var(--smx-blue));
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; color: #fff; flex-shrink: 0;
+  }
+  .sidebar-brand .txt { font-weight: 800; font-size: 1.02rem; color: #fff; line-height: 1.1; }
+  .sidebar-brand .txt small { display: block; font-weight: 500; font-size: 0.68rem; color: #8FA6BC; letter-spacing: 0.04em; }
+  
+  .side-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: #5C7690; padding: 16px 12px 8px; font-weight: 700; }
+  .side-nav { list-style: none; margin: 0; padding: 0; }
+  .side-nav li a {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 9px;
+    color: #B7C7D6; font-size: 0.87rem; font-weight: 600; margin-bottom: 2px; transition: .15s ease;
+  }
+  .side-nav li a:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .side-nav li a.active { background: var(--smx-cyan); color: #fff; }
+  .side-nav .count { margin-left: auto; background: var(--smx-amber); color: #291c00; font-size: 0.65rem; font-weight: 800; padding: 2px 7px; border-radius: 100px; }
+  
+  .sidebar-foot { margin-top: auto; border-top: 1px solid var(--line-dark); padding-top: 16px; display: flex; align-items: center; gap: 10px; }
+  .sidebar-foot .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--smx-cyan); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; flex-shrink: 0; }
+  .sidebar-foot .name { font-size: 0.85rem; font-weight: 700; color: #fff; }
+  .sidebar-foot .role { font-size: 0.7rem; color: #8FA6BC; }
+
+  .sidebar-toggle { display: none; position: fixed; top: 14px; left: 14px; z-index: 1200; background: var(--smx-dark); color: #fff; border: none; width: 40px; height: 40px; border-radius: 9px; font-size: 1.1rem; }
+  .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(11,29,46,0.5); z-index: 1090; }
+  
+  @media (max-width: 991px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-toggle { display: flex; align-items: center; justify-content: center; }
+    .sidebar-backdrop.show { display: block; }
+  }
+
+  /* MAIN WRAPPER COMPONENT */
+  .main { margin-left: var(--sidebar-w); }
+  @media (max-width: 991px) { .main { margin-left: 0; } }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 28px 60px; }
+  @media (max-width: 991px) { .wrap { padding: 0 18px 50px; } }
+
+  .topbar {
+    background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 900; padding: 16px 28px;
+  }
+  @media (max-width: 991px) { .topbar { padding: 16px 18px 16px 66px; } }
+  .topbar-inner { display: flex; align-items: center; gap: 16px; max-width: 1280px; margin: 0 auto; }
+  .topbar h1 { font-size: 1.2rem; font-weight: 800; margin: 0; white-space: nowrap; }
+  
+  .search-box { flex: 1; max-width: 340px; position: relative; }
+  .search-box i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.82rem; }
+  .search-box input { width: 100%; border: 1px solid var(--line); background: #fff; border-radius: 50px; padding: 9px 14px 9px 36px; font-size: 0.85rem; }
+  .search-box input:focus { outline: none; border-color: var(--smx-cyan); }
+  @media (max-width: 767px) { .search-box { display: none; } }
+  
+  .topbar-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+  .icon-btn { width: 38px; height: 38px; border-radius: 9px; border: 1px solid var(--line); background: #fff; display: flex; align-items: center; justify-content: center; color: #64748b; position: relative; }
+  .icon-btn .dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--smx-red); }
+  .topbar-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--smx-dark); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; }
+  
+  .btn-pill-cyan { background: var(--smx-cyan); color: #fff; border: none; padding: 9px 20px; border-radius: 50px; font-weight: 700; font-size: 0.84rem; white-space: nowrap; }
+  .btn-pill-cyan:hover { background: var(--smx-blue); color: #fff; }
+  .page-pad { padding-top: 26px; }
+
+  /* OPERATIONAL METRICS GRID */
+  .stat-card { background: #fff; border-radius: 14px; box-shadow: 0 8px 24px rgba(11,29,46,0.05); padding: 22px; height: 100%; border-bottom: 4px solid var(--smx-cyan); }
+  .stat-card .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .stat-card .icon { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; }
+  .stat-card .icon.blue { background: rgba(0,102,153,0.1); color: var(--smx-blue); }
+  .stat-card .icon.cyan { background: rgba(0,160,233,0.1); color: var(--smx-cyan); }
+  .stat-card .icon.green { background: rgba(40,167,69,0.1); color: var(--smx-green); }
+  .stat-card .icon.amber { background: rgba(245,166,35,0.14); color: var(--smx-amber); }
+  .stat-card .val { font-size: 1.7rem; font-weight: 800; color: #1a2b3a; margin-bottom: 2px; }
+  .stat-card .lbl { color: #7b8a99; font-size: 0.83rem; }
+
+  .panel { background: #fff; border-radius: 14px; box-shadow: 0 8px 24px rgba(11,29,46,0.05); padding: 24px; height: 100%; }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 10px; flex-wrap: wrap; }
+  .panel-head h2 { font-size: 1.05rem; font-weight: 800; margin: 0; }
+  .panel-head .sub { color: #7b8a99; font-size: 0.8rem; margin-top: 2px; }
+  
+  .filter-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-pills button {
+    border: 1px solid var(--line); background: #fff; color: #64748b; font-size: 0.78rem; font-weight: 700;
+    padding: 7px 16px; border-radius: 50px; transition: .15s ease;
+  }
+  .filter-pills button.active { background: var(--smx-dark); color: #fff; border-color: var(--smx-dark); }
+
+  /* INTERACTIVE INQUIRIES DATA TABLE */
+  .inq-table { width: 100%; border-collapse: collapse; }
+  .inq-table thead th { text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 700; padding: 0 12px 12px; border-bottom: 1px solid var(--line); }
+  .inq-table tbody td { padding: 14px 12px; font-size: 0.85rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .inq-table tbody tr:last-child td { border-bottom: none; }
+  .inq-table tbody tr { cursor: pointer; transition: background .12s ease; }
+  .inq-table tbody tr:hover { background: #fafcfd; }
+  
+  .cust-name { font-weight: 700; color: #1a2b3a; }
+  .cust-email { font-size: 0.76rem; color: #94a3b8; }
+  .subj-text { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  
+  .tag-brand { font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 50px; white-space: nowrap; }
+  .tag-brand.juki { background: rgba(0,102,153,0.1); color: var(--smx-blue); }
+  .tag-brand.silversun { background: rgba(0,160,233,0.1); color: var(--smx-cyan); }
+  .tag-brand.richpeace { background: rgba(40,167,69,0.1); color: var(--smx-green); }
+  .tag-brand.cerliani { background: rgba(245,166,35,0.15); color: #b45309; }
+  .tag-brand.general { background: rgba(148,163,184,0.15); color: #475569; }
+
+  .badge-status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 50px; font-size: 0.72rem; font-weight: 700; }
+  .badge-status.new { background: rgba(0,160,233,0.12); color: var(--smx-blue); }
+  .badge-status.replied { background: rgba(40,167,69,0.12); color: #1e7e34; }
+  .badge-status.archived { background: rgba(100,116,139,0.12); color: #475569; }
+  .badge-status .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  
+  .row-actions { display: flex; gap: 6px; }
+  .row-actions button { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: #fff; color: #64748b; font-size: 0.8rem; }
+  .row-actions button.wa:hover { background: #25D366; color: #fff; border-color: #25D366; }
+  .row-actions button.view:hover { background: var(--smx-cyan); color: #fff; border-color: var(--smx-cyan); }
+  .table-scroll { overflow-x: auto; }
+
+  /* DETAILS CONTROL MODAL */
+  .detail-row { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 0.87rem; }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-row .k { width: 110px; flex-shrink: 0; font-weight: 700; color: #7b8a99; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em; padding-top: 2px; }
+  .detail-row .v { color: #1a2b3a; }
+  .msg-box { background: var(--paper); border-radius: 10px; padding: 16px; font-size: 0.87rem; line-height: 1.6; color: #334155; }
+  
+  .btn-wa { background: #25D366; color: #fff; border: none; padding: 10px 22px; border-radius: 50px; font-weight: 700; font-size: 0.85rem; }
+  .btn-wa:hover { background: #1ea952; color: #fff; }
+  .btn-mail { background: var(--smx-blue); color: #fff; border: none; padding: 10px 22px; border-radius: 50px; font-weight: 700; font-size: 0.85rem; }
+  .btn-mail:hover { background: var(--smx-dark); color: #fff; }
+
+  .reveal { opacity: 0; transform: translateY(12px); transition: opacity .5s ease, transform .5s ease; }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar"><i class="fa-solid fa-bars"></i></button>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<!-- NAVIGATION SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <a href="index.html" class="sidebar-brand">
+    <div class="mark">SMX</div>
+    <div class="txt">SMX India<small>ADMIN PLATFORM</small></div>
+  </a>
+
+  <span class="side-label">Main Matrix</span>
+  <ul class="side-nav">
+    <li><a href="#" id="nav-overview" class="active"><i class="fa-solid fa-gauge-high" style="width:16px;"></i> Overview Hub</a></li>
+    <li><a href="#" id="nav-inquiries"><i class="fa-solid fa-inbox" style="width:16px;"></i> Inquiries Log <span class="count" id="sidebarCount">0 new</span></a></li>
+    <li><a href="#" id="nav-customers"><i class="fa-solid fa-users" style="width:16px;"></i> Client Profiles</a></li>
+    <li><a href="#" id="nav-products"><i class="fa-solid fa-layer-group" style="width:16px;"></i> Product Allocations</a></li>
+  </ul>
+
+  <span class="side-label">Routing Channels</span>
+  <ul class="side-nav">
+    <li><a href="#" id="nav-whatsapp"><i class="fa-brands fa-whatsapp" style="width:16px;"></i> WhatsApp Replies</a></li>
+    <li><a href="#" id="nav-email"><i class="fa-solid fa-envelope" style="width:16px;"></i> Email Interactions</a></li>
+  </ul>
+
+  <span class="side-label">Control Desk</span>
+  <ul class="side-nav">
+    <li><a href="#" id="nav-settings"><i class="fa-solid fa-sliders" style="width:16px;"></i> System Settings</a></li>
+    <li><a href="index.html"><i class="fa-solid fa-arrow-left" style="width:16px;"></i> Live Website</a></li>
+  </ul>
+
+  <div class="sidebar-foot">
+    <div class="avatar">SA</div>
+    <div>
+      <div class="name">S. Agarwal</div>
+      <div class="role">Managing Admin</div>
+    </div>
+    <a href="#" id="logoutSimBtn" title="Simulate Log Out" style="margin-left:auto; color:#8FA6BC;">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i>
+    </a>
+  </div>
+</aside>
+
+<!-- MAIN APP CONTEXT -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <h1 id="pageHeadingTitle">Overview Hub</h1>
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Search customer, email, machinery specifications...">
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn"><span class="dot"></span><i class="fa-regular fa-bell"></i></button>
+        <button class="btn-pill-cyan" id="exportBtn"><i class="fa-solid fa-file-export me-1"></i> Export Master CSV</button>
+        <div class="topbar-avatar">SA</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap page-pad">
+
+    <!-- VIEW 1: OVERVIEW HUB / INQUIRIES VIEW CONTAINER -->
+    <div id="panel-inquiries-view">
+      <!-- STATS DISPLAY -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3 reveal">
+          <div class="stat-card">
+            <div class="top"><div class="icon blue"><i class="fa-solid fa-database"></i></div><span class="trend up" style="color:var(--smx-blue)">System Records</span></div>
+            <div class="val" id="statTotal">0</div>
+            <div class="lbl">Total Submissions</div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3 reveal">
+          <div class="stat-card">
+            <div class="top"><div class="icon cyan"><i class="fa-solid fa-envelope-open-text"></i></div><span class="trend up" style="color:var(--smx-cyan)">Action Required</span></div>
+            <div class="val" id="statAwaiting">0</div>
+            <div class="lbl">Awaiting Response</div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3 reveal">
+          <div class="stat-card">
+            <div class="top"><div class="icon green"><i class="fa-solid fa-percent"></i></div><span class="trend up" style="color:var(--smx-green)">Conversion</span></div>
+            <div class="val" id="statReplyRate">0%</div>
+            <div class="lbl">Reply & Resolution Rate</div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3 reveal">
+          <div class="stat-card">
+            <div class="top"><div class="icon amber"><i class="fa-solid fa-microchip"></i></div><span class="trend down" style="color:var(--smx-amber)">Premium Allocation</span></div>
+            <div class="val" id="statTopProduct">—</div>
+            <div class="lbl">Top Sourced Brand</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISUALIZATIONS SECTION -->
+      <div class="row g-3 mb-4" id="chartsRowBlock">
+        <div class="col-lg-8 reveal">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>Inquiry Volume Fluctuations</h2>
+                <div class="sub">Systematic logging of client demand matrices</div>
+              </div>
+            </div>
+            <div style="height:230px;"><canvas id="inqVolumeChart"></canvas></div>
+          </div>
+        </div>
+        <div class="col-lg-4 reveal">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>Brand Line Interest Distribution</h2>
+                <div class="sub">Dynamic subject keyphrase analysis</div>
+              </div>
+            </div>
+            <div style="height:190px;"><canvas id="brandShareChart"></canvas></div>
+            <div class="d-flex flex-wrap gap-2 mt-3 justify-content-center" style="font-size:0.7rem; font-weight:600; color:#7b8a99;">
+              <span><i class="fa-solid fa-circle" style="color:#006699;"></i> Juki</span>
+              <span><i class="fa-solid fa-circle" style="color:#00a0e9;"></i> Silversun</span>
+              <span><i class="fa-solid fa-circle" style="color:#28a745;"></i> Richpeace</span>
+              <span><i class="fa-solid fa-circle" style="color:#f5a623;"></i> Cerliani</span>
+              <span><i class="fa-solid fa-circle" style="color:#94a3b8;"></i> General</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOG DATA GRID TABLE -->
+      <div class="row g-3">
+        <div class="col-12 reveal">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <h2 id="tablePanelTitle">Master Pipeline Messages</h2>
+                <div class="sub">Click down on any data row to interact, process, or archive entries</div>
+              </div>
+              <div class="filter-pills" id="filterPills">
+                <button class="active" data-filter="all">All Logs</button>
+                <button data-filter="new">New</button>
+                <button data-filter="replied">Replied</button>
+                <button data-filter="archived">Archived</button>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table class="inq-table">
+                <thead>
+                  <tr>
+                    <th>Client Profile</th>
+                    <th>Machinery Requirement Subject</th>
+                    <th>Identified Allocation</th>
+                    <th>Logged Timestamp</th>
+                    <th>Pipeline Status</th>
+                    <th>Actions Desk</th>
+                  </tr>
+                </thead>
+                <tbody id="inqTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: CLIENT PROFILES LOG -->
+    <div id="panel-customers-view" class="d-none">
+      <div class="panel p-4 reveal in">
+        <h2>Aggregated Corporate Directory</h2>
+        <div class="text-muted mb-4" style="font-size: 0.85rem;">Master configuration list systematically extracted from isolated unique platform contact entry channels.</div>
+        <div class="table-scroll">
+          <table class="inq-table w-100">
+            <thead>
+              <tr>
+                <th>Customer Contact Name</th>
+                <th>Registered Email Target</th>
+                <th>Inquiry Frequency</th>
+                <th>Inferred Allocation</th>
+              </tr>
+            </thead>
+            <tbody id="customerTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: PRODUCT LINE ALLOCATIONS -->
+    <div id="panel-products-view" class="d-none">
+      <div class="panel p-4 reveal in">
+        <h2>Premium Brand Component Portfolio Range</h2>
+        <div class="text-muted mb-4" style="font-size: 0.85rem;">Operational framework classifications matching premium global sewing technology vectors[cite: 3].</div>
+        <div class="row g-3 text-center">
+          <div class="col-md-3"><div class="stat-card py-4" style="border-bottom-color:#006699;"><h4>Juki</h4><p class="text-muted small mb-0">Japanese Automation & Stitch Engineering[cite: 7]</p></div></div>
+          <div class="col-md-3"><div class="stat-card py-4" style="border-bottom-color:#00a0e9;"><h4>Silversun</h4><p class="text-muted small mb-0">Taiwan High-Performance Sewing Hubs[cite: 9]</p></div></div>
+          <div class="col-md-3"><div class="stat-card py-4" style="border-bottom-color:#28a745;"><h4>Richpeace</h4><p class="text-muted small mb-0">CNC Quilting & Automatic Fabric Cutters[cite: 3, 8]</p></div></div>
+          <div class="col-md-3"><div class="stat-card py-4" style="border-bottom-color:#f5a623;"><h4>Cerliani</h4><p class="text-muted small mb-0">Italian Micro-Tolerance Precision Hooks & Bobbins[cite: 4]</p></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 4: SYSTEM CONFIG DESK -->
+    <div id="panel-settings-view" class="d-none">
+      <div class="panel p-4 reveal in" style="max-width:600px;">
+        <h2>Administrative Engine Parameters</h2>
+        <div class="text-muted mb-4" style="font-size: 0.85rem;">Control panel settings managing client memory buffers and tracking loops.</div>
+        <div class="mb-4">
+          <label class="form-label fw-bold small text-uppercase">Target Notification Endpoint</label>
+          <input type="text" class="form-control rounded-pill text-muted bg-light" id="waNumberConfig" value="+91 75066 25436" readonly>
+          <span style="font-size:0.72rem;" class="text-muted">Synchronized destination for WhatsApp outbound messaging loops.</span>
+        </div>
+        <button class="btn btn-outline-danger px-4 rounded-pill fw-bold" id="dbResetBtn" style="font-size:0.85rem;">
+          <i class="fa-solid fa-trash-can me-2"></i> Wipe System Storage Memory Buffers
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- COMPONENT MODAL CONTROLLER -->
+<div class="modal fade" id="messageModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="modalCustName">Client Name</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-row"><div class="k">Email Address</div><div class="v" id="modalEmail">—</div></div>
+        <div class="detail-row"><div class="k">Subject Head</div><div class="v" id="modalSubject">—</div></div>
+        <div class="detail-row"><div class="k">Brand Match</div><div class="v" id="modalProduct">—</div></div>
+        <div class="detail-row"><div class="k">Date Logged</div><div class="v" id="modalDate">—</div></div>
+        <div class="mt-3">
+          <div class="k mb-2">Message Payload Specifications</div>
+          <div class="msg-box" id="modalMessage">—</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-wa" id="modalWaBtn"><i class="fa-brands fa-whatsapp me-1"></i> Open Interlocution Desk</button>
+        <button class="btn-mail" id="modalMailBtn"><i class="fa-solid fa-envelope me-1"></i> Send Mail Relay</button>
+        <button class="btn btn-outline-secondary rounded-pill" id="modalArchiveBtn" style="font-size:0.85rem; font-weight:700;">Archive</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Integration Scripts Core Hooks -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+<script>
+  // ---------- CLEAN STORAGE ENGINE (STARTS BLANK) ----------
+  const DB_KEY = "smx_inquiries_db";
+  const WHATSAPP_TARGET = "917506625436"; 
+
+  function initializeStorage() {
+    const rawData = localStorage.getItem(DB_KEY);
+    if (!rawData) {
+      // STARTS COMPLETELY BLANK: No old, seeded, or mock entries will show up.
+      localStorage.setItem(DB_KEY, JSON.stringify([]));
+      return [];
+    }
+    return JSON.parse(rawData);
+  }
+
+  // ---------- Sidebar view toggle controller ----------
+  const sidebar = document.getElementById('sidebar');
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+  
+  sidebarToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    sidebarBackdrop.classList.toggle('show');
+  });
+  sidebarBackdrop.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    sidebarBackdrop.classList.remove('show');
+  });
+
+  // Reveal transition on display initialization
+  const intersectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); intersectionObserver.unobserve(e.target); } });
+  }, { threshold: 0.05 });
+  document.querySelectorAll('.reveal').forEach(el => intersectionObserver.observe(el));
+
+  let globalPipelineDataset = [];
+  let currentFilter = 'all';
+  let currentSearch = '';
+
+  function fetchStyleClassByBrand(productBrand) {
+    const brandMap = {
+      'Juki': 'juki',
+      'Silversun': 'silversun',
+      'Richpeace': 'richpeace',
+      'Cerliani': 'cerliani'
+    };
+    return `tag-brand ${brandMap[productBrand] || 'general'}`;
+  }
+
+  function getStatusBadgeTemplate(status) {
+    const map = {
+      new: '<span class="badge-status new"><span class="dot"></span> New Submission</span>',
+      replied: '<span class="badge-status replied"><span class="dot"></span> Processed</span>',
+      archived: '<span class="badge-status archived"><span class="dot"></span> Archived Log</span>'
+    };
+    return map[status] || map.new;
+  }
+
+  // ---------- OPERATIONAL PIPELINE AND SUMMARY ANALYSIS LOGICS ----------
+  function computePipelineStats() {
+    const dataset = globalPipelineDataset;
+    const totalCount = dataset.length;
+    const awaitingCount = dataset.filter(i => i.status === 'new').length;
+    const resolvedCount = dataset.filter(i => i.status === 'replied').length;
+    const efficiencyFactor = totalCount ? Math.round((resolvedCount / totalCount) * 100) : 0;
+
+    const distributionMap = { Juki: 0, Silversun: 0, Richpeace: 0, Cerliani: 0, General: 0 };
+    dataset.forEach(i => {
+      if (distributionMap[i.product] !== undefined) distributionMap[i.product]++;
+      else distributionMap['General']++;
+    });
+
+    const topPositionBrand = Object.keys(distributionMap).reduce((a, b) => distributionMap[a] > distributionMap[b] ? a : b, 'General');
+
+    document.getElementById('statTotal').textContent = totalCount;
+    document.getElementById('statAwaiting').textContent = awaitingCount;
+    document.getElementById('sidebarCount').textContent = awaitingCount + ' unread';
+    document.getElementById('statReplyRate').textContent = efficiencyFactor + '%';
+    document.getElementById('statTopProduct').textContent = totalCount && distributionMap[topPositionBrand] > 0 ? topPositionBrand : '—';
+
+    generateBrandDoughnutChart(distributionMap);
+    generateVolumeBarChart(dataset);
+  }
+
+  function renderPipelineDataGrid() {
+    const tbody = document.getElementById('inqTableBody');
+    tbody.innerHTML = '';
+
+    const sortedData = globalPipelineDataset.filter(item => {
+      const matchFilterRule = currentFilter === 'all' || item.status === currentFilter;
+      const searchStr = currentSearch.toLowerCase();
+      const matchSearchRule = !searchStr || 
+                              item.name.toLowerCase().includes(searchStr) || 
+                              item.email.toLowerCase().includes(searchStr) || 
+                              item.subject.toLowerCase().includes(searchStr) ||
+                              item.product.toLowerCase().includes(searchStr);
+      return matchFilterRule && matchSearchRule;
+    });
+
+    if (sortedData.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No structural pipeline log information matched search matrix parameters.</td></tr>';
+      return;
+    }
+
+    sortedData.forEach(inq => {
+      const formattedDate = new Date(inq.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div class="cust-name">${inq.name}</div>
+          <div class="cust-email">${inq.email}</div>
+        </td>
+        <td><div class="subj-text" title="${inq.subject}">${inq.subject}</div></td>
+        <td><span class="${fetchStyleClassByBrand(inq.product)}">${inq.product}</span></td>
+        <td class="text-muted small">${formattedDate}</td>
+        <td>${getStatusBadgeTemplate(inq.status)}</td>
+        <td>
+          <div class="row-actions">
+            <button class="view" title="View Payload Details" data-id="${inq.id}"><i class="fa-regular fa-eye"></i></button>
+            <button class="wa" title="Open Interactive WhatsApp Interface" data-wa="${inq.id}"><i class="fa-brands fa-whatsapp"></i></button>
+          </div>
+        </td>
+      `;
+      tr.addEventListener('click', (e) => {
+        if (e.target.closest('button.wa')) return;
+        launchDetailsModal(inq.id);
+      });
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('button.wa').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerWhatsAppRoutingFlow(btn.dataset.wa);
+      });
+    });
+  }
+
+  function updateStatusAndSynchronize(id, newStatus) {
+    const rawCollection = initializeStorage();
+    const targetIdx = rawCollection.findIndex(i => i.id === id);
+    if (targetIdx > -1) {
+      rawCollection[targetIdx].status = newStatus;
+      localStorage.setItem(DB_KEY, JSON.stringify(rawCollection));
+      syncAndRenderEngine();
+    }
+  }
+
+  function launchDetailsModal(id) {
+    const item = globalPipelineDataset.find(i => i.id === id);
+    if (!item) return;
+
+    document.getElementById('modalCustName').textContent = item.name;
+    document.getElementById('modalEmail').textContent = item.email;
+    document.getElementById('modalSubject').textContent = item.subject;
+    document.getElementById('modalProduct').textContent = item.product;
+    document.getElementById('modalDate').textContent = new Date(item.timestamp).toLocaleString('en-IN');
+    document.getElementById('modalMessage').textContent = item.message;
+
+    document.getElementById('modalWaBtn').onclick = () => triggerWhatsAppRoutingFlow(id);
+    document.getElementById('modalMailBtn').onclick = () => {
+      const subjectLine = encodeURIComponent('Re: SMX India Machinery Response - ' + item.subject);
+      const emailBody = encodeURIComponent(`Dear ${item.name},\n\nThank you for choosing Sewing Machine Exchange India (SMX India).\n\n`);
+      window.location.href = `mailto:${item.email}?subject=${subjectLine}&body=${emailBody}`;
+      updateStatusAndSynchronize(id, 'replied');
+      bootstrap.Modal.getInstance(document.getElementById('messageModal')).hide();
+    };
+    document.getElementById('modalArchiveBtn').onclick = () => {
+      updateStatusAndSynchronize(id, 'archived');
+      bootstrap.Modal.getInstance(document.getElementById('messageModal')).hide();
+    };
+
+    new bootstrap.Modal(document.getElementById('messageModal')).show();
+  }
+
+  function triggerWhatsAppRoutingFlow(id) {
+    const item = globalPipelineDataset.find(i => i.id === id);
+    if (!item) return;
+    const outboundText = `*SMX India Procurement Acknowledgment* 📬\n\n` +
+                         `*Client Group:* ${item.name}\n` +
+                         `*Machinery Context:* ${item.product} Specification Core\n` +
+                         `*Original Subject:* ${item.subject}\n\n` +
+                         `Hello ${item.name}, thank you for contacting SMX India. We have reviewed your parameter specification request and are generating your product configurations line items — `;
+    window.open(`https://wa.me/${WHATSAPP_TARGET}?text=${encodeURIComponent(outboundText)}`, '_blank');
+    updateStatusAndSynchronize(id, 'replied');
+    bootstrap.Modal.getInstance(document.getElementById('messageModal'))?.hide();
+  }
+
+  // ---------- VIEW TOOGLE DESK ROUTER ----------
+  const navLinks = document.querySelectorAll('.side-nav li a');
+  navLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      const tabText = this.textContent.trim();
+      if (tabText.toLowerCase().includes("website")) return;
+      e.preventDefault();
+
+      navLinks.forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+
+      let viewPanelId = "panel-inquiries-view";
+      document.getElementById('chartsRowBlock').style.display = 'none';
+
+      if (tabText.includes("Overview Hub")) {
+        viewPanelId = "panel-inquiries-view";
+        document.getElementById('chartsRowBlock').style.display = 'flex';
+        document.getElementById('tablePanelTitle').textContent = "Master Pipeline Messages";
+        currentFilter = 'all';
+      } else if (tabText.includes("Inquiries Log")) {
+        viewPanelId = "panel-inquiries-view";
+        document.getElementById('tablePanelTitle').textContent = "Active Filtering Log Grid";
+      } else if (tabText.includes("WhatsApp")) {
+        viewPanelId = "panel-inquiries-view";
+        document.getElementById('tablePanelTitle').textContent = "Filtered Channel: WhatsApp Submissions Routing";
+        currentFilter = 'all'; 
+      } else if (tabText.includes("Email")) {
+        viewPanelId = "panel-inquiries-view";
+        document.getElementById('tablePanelTitle').textContent = "Filtered Channel: Mail Communications Processing Pipeline";
+        currentFilter = 'all';
+      } else if (tabText.includes("Client Profiles")) {
+        viewPanelId = "panel-customers-view";
+        compileClientDirectoryTable();
+      } else if (tabText.includes("Product Allocations")) {
+        viewPanelId = "panel-products-view";
+      } else if (tabText.includes("System Settings")) {
+        viewPanelId = "panel-settings-view";
+      }
+
+      document.getElementById('panel-inquiries-view').classList.add('d-none');
+      document.getElementById('panel-customers-view').classList.add('d-none');
+      document.getElementById('panel-products-view').classList.add('d-none');
+      document.getElementById('panel-settings-view').classList.add('d-none');
+
+      document.getElementById(viewPanelId).classList.remove('d-none');
+      document.getElementById('pageHeadingTitle').textContent = tabText.split(' ')[0] + " Operational Space";
+
+      sidebar.classList.remove('open');
+      sidebarBackdrop.classList.remove('show');
+      renderPipelineDataGrid();
+    });
+  });
+
+ function compileClientDirectoryTable() {
+    const tbody = document.getElementById('customerTableBody');
+    if (!tbody) return;
+
+    // Clear out any old rows completely before processing
+    tbody.innerHTML = '';
+
+    const aggregateMap = {};
+    
+    // Scan through only live submitted entries in the active dataset
+    globalPipelineDataset.forEach(inq => {
+      if (!aggregateMap[inq.email]) {
+        aggregateMap[inq.email] = { name: inq.name, hits: 1, lastBrand: inq.product };
+      } else {
+        aggregateMap[inq.email].hits++;
+        aggregateMap[inq.email].lastBrand = inq.product;
+      }
+    });
+
+    const uniqueKeys = Object.keys(aggregateMap);
+    
+    // If no real entries exist yet in LocalStorage, show an empty state message
+    if (uniqueKeys.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="text-center py-5 text-muted fw-medium"><i class="fa-solid fa-users-slash d-block mb-2 fa-2x text-light"></i>No client accounts registered yet. New website form submissions will appear here automatically.</td></tr>';
+      return;
+    }
+
+    // Render only the newly captured live profiles
+    tbody.innerHTML = uniqueKeys.map(mailKey => {
+      const node = aggregateMap[mailKey];
+      return `
+        <tr>
+          <td><div class="cust-name">${node.name}</div></td>
+          <td><span class="text-primary fw-semibold">${mailKey}</span></td>
+          <td><span class="badge bg-dark rounded-pill px-3">${node.hits} Submissions</span></td>
+          <td><span class="${fetchStyleClassByBrand(node.lastBrand)}">${node.lastBrand}</span></td>
+        </tr>
+      `;
+    }).join('');
+  }
+  // Filter pills orchestration binding
+  document.getElementById('filterPills').addEventListener('click', (e) => {
+    if (e.target.tagName !== 'BUTTON') return;
+    document.querySelectorAll('#filterPills button').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    currentFilter = e.target.dataset.filter;
+    renderPipelineDataGrid();
+  });
+
+  document.getElementById('searchInput').addEventListener('input', (e) => {
+    currentSearch = e.target.value;
+    renderPipelineDataGrid();
+  });
+
+  // System parameters operations wiped handler
+  document.getElementById('dbResetBtn').onclick = function() {
+    if (confirm("Confirm parameters reset? Current pipeline logs will be cleared.")) {
+      localStorage.setItem(DB_KEY, JSON.stringify([]));
+      location.reload();
+    }
+  };
+
+  // CSV Data Pipeline Generator Export Model
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const csvRows = [['Pipeline ID', 'Client Title', 'Target Email Address', 'Machinery Subject Context', 'Identified Allocation Line', 'Payload Details Message', 'Pipeline Node Status', 'Logged Date Timestamp']];
+    globalPipelineDataset.forEach(i => {
+      csvRows.push([i.id, i.name, i.email, i.subject, i.product, i.message.replace(/\n/g, ' '), i.status, new Date(i.timestamp).toISOString()]);
+    });
+    const parsedCsvString = csvRows.map(r => r.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blobObject = new Blob([parsedCsvString], { type: 'text/csv;charset=utf-8;' });
+    const dynamicAnchorLink = document.createElement('a');
+    dynamicAnchorLink.href = URL.createObjectURL(blobObject);
+    dynamicAnchorLink.download = `smx-pipeline-operations-matrix-${new Date().toISOString().slice(0,10)}.csv`;
+    dynamicAnchorLink.click();
+  });
+
+  // ---------- CHART.JS ANALYTICS DATA CONFIGURATION DESK ----------
+  let volumeChartInstance, distributionChartInstance;
+
+  function generateVolumeBarChart(dataArray) {
+    const aggregationBins = {};
+    const historicalChain = [...dataArray].sort((a, b) => a.timestamp - b.timestamp);
+    
+    historicalChain.forEach(i => {
+      const entryDayString = new Date(i.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+      aggregationBins[entryDayString] = (aggregationBins[entryDayString] || 0) + 1;
+    });
+
+    const labelXAxis = Object.keys(aggregationBins);
+    const valueYAxis = Object.values(aggregationBins);
+
+    if (volumeChartInstance) volumeChartInstance.destroy();
+    const ctx = document.getElementById('inqVolumeChart').getContext('2d');
+    volumeChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labelXAxis.length ? labelXAxis : ['No Data Sourced'],
+        datasets: [{
+          label: 'Inbound Flow Rate', data: valueYAxis.length ? valueYAxis : [0],
+          backgroundColor: '#00a0e9', borderRadius: 6, maxBarThickness: 32
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { family: 'Montserrat', size: 10 } } },
+          y: { grid: { color: 'rgba(11,29,46,0.04)' }, ticks: { precision: 0, font: { family: 'Montserrat', size: 10 } } }
+        }
+      }
+    });
+  }
+
+  function generateBrandDoughnutChart(distributionDataObj) {
+    if (distributionChartInstance) distributionChartInstance.destroy();
+    const ctx = document.getElementById('brandShareChart').getContext('2d');
+    distributionChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(distributionDataObj),
+        datasets: [{
+          data: Object.values(distributionDataObj),
+          backgroundColor: ['#006699', '#00a0e9', '#28a745', '#f5a623', '#94a3b8'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '72%',
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  function syncAndRenderEngine() {
+    const rawStorage = initializeStorage();
+    globalPipelineDataset = rawStorage.map(item => ({
+      id: item.id || 'inq-' + Math.random().toString(36).substr(2, 9),
+      name: item.name || 'Unknown Buyer Group',
+      email: item.email || '—',
+      subject: item.subject || '(No Specific Subject Defined)',
+      product: item.product || 'General',
+      message: item.message || '',
+      status: item.status || 'new',
+      timestamp: item.timestamp || Date.now()
+    })).sort((a, b) => b.timestamp - a.timestamp);
+
+    renderPipelineDataGrid();
+    computePipelineStats();
+  }
+
+  // Fire live state engine rendering loops on boot
+  syncAndRenderEngine();
+</script>
+</body>
+</html>
